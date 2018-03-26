@@ -7,12 +7,12 @@ require 'preparation'
 class Operation
   attr_reader :logger, :homework_nr, :fetcher, :collector, :preparation
 
-  def initialize(homework_nr, session_id)
+  def initialize(course_nr, homework_nr, session_id)
     @homework_nr = homework_nr
     @logger = Logger.new(STDOUT)
 
     target_dir = "Homework#{homework_nr}"
-    @fetcher = Fetcher.new(@logger, homework_nr, session_id)
+    @fetcher = Fetcher.new(@logger, course_nr, homework_nr, session_id)
     @collector = Collector.new(@logger, @fetcher, target_dir)
     @preparation = Preparation.new(@logger, target_dir)
   end

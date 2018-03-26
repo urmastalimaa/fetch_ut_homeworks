@@ -7,6 +7,10 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = 'Usage: download_homework.rb [options]'
 
+  opts.on('-c', '--course_nr COURSE_NR', 'Course nr') do |n|
+    options[:course_nr] = n
+  end
+
   opts.on('-n', '--homework_nr HOMEWORK_NR', 'Homework nr') do |n|
     options[:homework_nr] = n
   end
@@ -21,4 +25,8 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-Operation.new(options.fetch(:homework_nr), options.fetch(:session_id)).call
+Operation.new(
+  options.fetch(:course_nr),
+  options.fetch(:homework_nr),
+  options.fetch(:session_id)
+).call
