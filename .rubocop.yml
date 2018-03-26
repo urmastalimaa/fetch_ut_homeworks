@@ -1,5 +1,8 @@
 Metrics/LineLength:
   Max: 120
 
+Metrics/AbcSize:
+  Max: 30
+
 Style/RegexpLiteral:
   Enabled: False
