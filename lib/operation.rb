@@ -1,18 +1,26 @@
-require './fetcher'
-require './collector'
-require './preparation'
+require 'logger'
+require 'fetcher'
+require 'collector'
+require 'preparation'
 
 # Fetches and prepares homework for grading
 class Operation
+  attr_reader :logger, :homework_nr, :fetcher, :collector, :preparation
+
   def initialize(homework_nr, session_id)
+    @homework_nr = homework_nr
+    @logger = Logger.new(STDOUT)
+
     target_dir = "Homework#{homework_nr}"
-    @fetcher = Fetcher.new(homework_nr, session_id)
-    @collector = Collector.new(fetcher, target_dir)
-    @preparation = Preparation.new(target_dir)
+    @fetcher = Fetcher.new(@logger, homework_nr, session_id)
+    @collector = Collector.new(@logger, @fetcher, target_dir)
+    @preparation = Preparation.new(@logger, target_dir)
   end
 
   def call
-    @fetcher.submissions!.each(@collector.method(&:save_submission_to_disk))
-    @preparation.prepare!
+    logger.info "Preparing homework #{homework_nr}"
+
+    fetcher.submissions!.each(&collector.method(:save_submission_to_disk))
+    preparation.prepare!
   end
 end
