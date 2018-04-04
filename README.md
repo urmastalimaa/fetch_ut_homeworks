@@ -9,3 +9,9 @@ University of Tartu homeworks for grading.
 bundle install
 bundle exec ruby download_homework.rb --help
 ```
+
+# Session ID
+
+Using this tool requires logging in to courses.cs.ut.ee and extracting you
+COURSESSID cookie. The value of the cookie must be provided as the session_id
+parameter.
