@@ -5,6 +5,9 @@ require 'submission'
 # Fetches information about all submissions for a single task from the course page
 class Fetcher
   DOMAIN = 'https://courses.cs.ut.ee'.freeze
+  BAD_REQUEST_MARKER = "h1:contains('Päring oli väga paha')".freeze
+
+  BadRequest = Class.new(StandardError)
 
   def initialize(logger, course_nr, homework_nr, session_id)
     @logger = logger
@@ -41,7 +44,9 @@ class Fetcher
   end
 
   def submissions_html
-    Nokogiri::HTML(request_from_courses(@remote_path).body)
+    Nokogiri::HTML(request_from_courses(@remote_path).body).tap do |html|
+      raise BadRequest, 'Ensure that your session ID is valid and that you are logged in' if html.at(BAD_REQUEST_MARKER)
+    end
   end
 
   def extract_submission_hrefs(html)

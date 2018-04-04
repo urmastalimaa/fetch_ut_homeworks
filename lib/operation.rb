@@ -22,5 +22,7 @@ class Operation
 
     fetcher.submissions!.each(&collector.method(:save_submission_to_disk))
     preparation.prepare!
+  rescue StandardError => e
+    @logger.error(e.inspect)
   end
 end
