@@ -41,6 +41,6 @@ class Collector
   end
 
   def unpack(filename, target_dir)
-    `/Applications/Keka.app/Contents/Resources/keka7z x -o./#{target_dir} #{filename}`
+    `/Applications/Keka.app/Contents/Resources/keka7z x -y -o./#{target_dir} #{filename}`
   end
 end
