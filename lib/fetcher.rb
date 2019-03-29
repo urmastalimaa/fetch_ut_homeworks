@@ -8,6 +8,7 @@ class Fetcher
   BAD_REQUEST_MARKER = "h1:contains('Päring oli väga paha')".freeze
 
   BadRequest = Class.new(StandardError)
+  CouldNotDownloadSubmission = Class.new(StandardError)
 
   def initialize(logger, course_nr, homework_nr, session_id)
     @logger = logger
@@ -31,15 +32,21 @@ class Fetcher
 
   def download_submission!(path)
     @logger.info "Downloading submission #{path}"
-    request_from_courses(path).body
+    html = request_from_courses(path, 'Accept' => 'application/zip').body
+    if html.match?('DOCTYPE html')
+      raise CouldNotDownloadSubmission
+    else
+      html
+    end
   end
 
   private
 
-  def request_from_courses(path)
+  def request_from_courses(path, headers = {})
     @conn.get do |req|
       req.url path
       req.headers['Cookie'] = "COURSESSID=#{@session_id}"
+      headers.each { |k, v| req.headers[k] = v }
     end
   end
 
