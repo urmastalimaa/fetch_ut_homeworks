@@ -30,11 +30,15 @@ class Fetcher
       .map { |_, submissions| StudentSubmissions.new(submissions) }
   end
 
-  def download_submission!(path)
+  def download_submission!(path, retry_budget = 10)
     @logger.info "Downloading submission #{path}"
     html = request_from_courses(path, 'Accept' => 'application/zip').body
     if html.match?('DOCTYPE html')
-      raise CouldNotDownloadSubmission
+      if retry_budget > 0
+        download_submission!(path, retry_budget - 1)
+      else
+        raise CouldNotDownloadSubmission
+      end
     else
       html
     end
