@@ -3,8 +3,8 @@ class Submission
   attr_reader :remote_path, :matricle_nr, :filename
 
   def self.from_href(href)
-    matricle_nr = href.match(/.*\/get\/\d\/([^.]*).*\//)[1]
-    original_filename = href.match(/[^\/]*$/)[0]
+    matricle_nr = href.match(/.*\/get\/\d\/([^._]*).*\//)[1]
+    original_filename = href.match(/[^\/]*$/)[0] + '.zip'
     new(href, matricle_nr, original_filename)
   end
 
