@@ -63,7 +63,7 @@ class Fetcher
   def extract_submission_hrefs(html)
     html
       .css('tbody > tr')
-      .map { |r| r.css('a').first }
+      .map { |r| r.css("a[href*='submissions']").first }
       .compact
       .map { |href| href.attributes['href'].value }
   end
