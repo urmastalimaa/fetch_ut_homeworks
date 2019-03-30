@@ -30,21 +30,28 @@ class Fetcher
       .map { |_, submissions| StudentSubmissions.new(submissions) }
   end
 
-  def download_submission!(path, retry_budget = 10)
+  def download_submission!(path)
     @logger.info "Downloading submission #{path}"
-    html = request_from_courses(path, 'Accept' => 'application/zip').body
-    if html.match?('DOCTYPE html')
-      if retry_budget > 0
-        download_submission!(path, retry_budget - 1)
-      else
-        raise CouldNotDownloadSubmission
-      end
-    else
-      html
+    retry_with_check(-> { fetch_submission_contents(path) }, 10) do |result|
+      raise CouldNotDownloadSubmission if result.match?('DOCTYPE html')
     end
   end
 
   private
+
+  def fetch_submission_contents(path)
+    request_from_courses(path, 'Accept' => 'application/zip').body
+  end
+
+  def retry_with_check(operation, budget, &check)
+    result = operation.call
+    yield result
+    result
+  rescue StandardError
+    return retry_with_check(operation, budget - 1, &check) if budget > 0
+
+    raise
+  end
 
   def request_from_courses(path, headers = {})
     @conn.get do |req|
@@ -55,7 +62,7 @@ class Fetcher
   end
 
   def submissions_html
-    Nokogiri::HTML(request_from_courses(@remote_path).body).tap do |html|
+    retry_with_check(-> { Nokogiri::HTML(request_from_courses(@remote_path).body) }, 10) do |html|
       raise BadRequest, 'Ensure that your session ID is valid and that you are logged in' if html.at(BAD_REQUEST_MARKER)
     end
   end
