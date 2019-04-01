@@ -25,6 +25,7 @@ class Preparation
 
   def remove_nested_dir!(dir_name)
     dir_names = Dir.glob("#{dir_name}/**").select { |f| File.directory?(f) }
+      .reject { |d| File.basename(d).start_with?('_') } # ignore "hidden" folders
     return unless dir_names.length == 1
 
     @logger.info "Removing nested dir in #{dir_name}"
