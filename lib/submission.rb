@@ -4,7 +4,7 @@ class Submission
 
   def self.from_href(href)
     matricle_nr = href.match(/.*\/get\/\d\/([^._]*).*\//)[1]
-    original_filename = href.match(/[^\/]*$/)[0] + '.zip'
+    original_filename = href.match(/[^\/]*$/)[0]
     new(href, matricle_nr, original_filename)
   end
 

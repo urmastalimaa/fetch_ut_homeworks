@@ -9,8 +9,10 @@ class Preparation
 
   def prepare!
     Dir.glob("./#{@homework_dir}/**").each do |dir_name|
-      remove_nested_dir!(dir_name)
-      install_deps!(dir_name)
+      if File.directory?(dir_name)
+        remove_nested_dir!(dir_name)
+        install_deps!(dir_name)
+      end
     end
   end
 

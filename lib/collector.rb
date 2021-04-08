@@ -9,15 +9,14 @@ class Collector
   def save_submission_to_disk(student_submission)
     `mkdir -p ./#{@target_dir}/`
     @logger.info "Fetching #{student_submission}"
-    binary = @fetcher.download_submission!(student_submission.latest.remote_path)
-    write_submission(student_submission, binary)
+    filename, binary = @fetcher.download_latest_submission!(student_submission)
+    write_submission(student_submission, filename, binary)
   end
 
   private
 
-  def write_submission(student_submission, binary)
+  def write_submission(student_submission, filename, binary)
     @logger.info "Writing #{student_submission}"
-    filename = student_submission.latest.filename
     matricle_nr = student_submission.matricle_nr
     File.open("./#{@target_dir}/#{filename}", 'wb') { |f| f.write(binary) }
     @logger.debug "Unpacking #{student_submission}"
@@ -25,6 +24,8 @@ class Collector
     `rm ./#{@target_dir}/#{filename}`
     @logger.debug "Adding meta files #{student_submission}"
     add_meta_files(student_submission)
+  rescue StandardError => e
+    @logger.error("Could not write #{student_submission} #{e.inspect}")
   end
 
   def add_meta_files(student_submission)

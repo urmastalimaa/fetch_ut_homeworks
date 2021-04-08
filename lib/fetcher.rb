@@ -30,10 +30,23 @@ class Fetcher
       .map { |_, submissions| StudentSubmissions.new(submissions) }
   end
 
-  def download_submission!(path)
+  def download_latest_submission!(student_submission)
+    try ||= 0
+    path = student_submission.latest.remote_path
     @logger.info "Downloading submission #{path}"
-    retry_with_check(-> { fetch_submission_contents(path) }, 10) do |result|
-      raise CouldNotDownloadSubmission if result.match?('DOCTYPE html')
+    resp = request_from_courses(path)
+    if !resp.headers['content-disposition']
+      # Sometimes the request responds with "Log in" page arbitrarily
+      raise "Bad request"
+    end
+
+    filename = resp.headers['content-disposition'].match(/filename=([^;]+)/)[1]
+    [filename, resp.body]
+  rescue
+    try += 1
+    if try < 10
+      @logger.warn "Retrying submission download"
+      retry
     end
   end
 
@@ -62,16 +75,16 @@ class Fetcher
   end
 
   def submissions_html
-    retry_with_check(-> { Nokogiri::HTML(request_from_courses(@remote_path).body) }, 10) do |html|
+    @_html ||= retry_with_check(-> { Nokogiri::HTML(request_from_courses(@remote_path).body) }, 10) do |html|
       raise BadRequest, 'Ensure that your session ID is valid and that you are logged in' if html.at(BAD_REQUEST_MARKER)
     end
   end
 
   def extract_submission_hrefs(html)
     html
-      .css('tbody > tr')
-      .map { |r| r.css("a[href*='submissions']").first }
+      .css('table#task-sub-table > tbody > tr')
+      .map { |r| r.css('a[target="_blank"]').first }
       .compact
-      .map { |href| href.attributes['href'].value }
+      .map { |href| "#{DOMAIN}#{href.attributes['href'].value}" }
   end
 end
